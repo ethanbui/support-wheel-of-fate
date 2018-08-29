@@ -1,0 +1,4 @@
+rule:
+	shift:
+		cycle: 14
+		perday: 2

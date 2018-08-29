@@ -1,0 +1,6 @@
+logging:
+    file: logs/jwof.log
+    level:
+        org:
+            springframework:
+                web: DEBUG                    
