@@ -2,7 +2,6 @@ package com.x.jwof.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +23,17 @@ public class TimeTableService {
 	
 	@Autowired
 	private RuleService ruleService;
-	
+
 	public List<TimeTable> retrieveTimeTable() {
+		List<Engineer> engineers = DataUtil.getEngineerList();
 		List<TimeTable> timeTable = generateTimeTable();
-		return assignEngineer(timeTable);
+
+		for (TimeTable schedule : timeTable) {
+			schedule.setEngineers(new ArrayList<>());			
+			assignEngineers(engineers, timeTable, schedule);
+		}
+		
+		return timeTable;
 	}
 	
 	private List<TimeTable> generateTimeTable() {
@@ -36,11 +42,14 @@ public class TimeTableService {
 		List<TimeTable> schedule = new ArrayList<>();
 		LocalDate nextMonday = DateUtil.getNextMonday();
 		int id = 0;
+		
 		for (int i = 0; i < shiftConfig.getCycle(); i++) {
 			LocalDate shiftDate = nextMonday.plusDays(i);
+			
 			if(DateUtil.isWeekend(shiftDate)) {
 				continue;
 			}
+			
 			id++;
 			schedule.add(new TimeTable(id, null, shiftDate, shiftDate.getDayOfWeek().toString()));
 		}
@@ -48,34 +57,25 @@ public class TimeTableService {
 		return schedule;
 	}
 	
-	public List<TimeTable> assignEngineer(List<TimeTable> timeTable) {
-		log.info("Assign engineer timetable...");
+	private void assignEngineers(List<Engineer> engineers, List<TimeTable> timeTable, TimeTable schedule) {
+		// init unavailable engineers in order to reduce loop count
+		List<Engineer> unavailable = new ArrayList<>();
 		
-		int index = 0;
-		List<Engineer> engineers = DataUtil.getEngineerList();		
-		for (TimeTable schedule : timeTable) {
-			if(schedule.getEngineers() == null) {
-				schedule.setEngineers(new ArrayList<>());
+		for (Engineer engineer : engineers) {
+			if(ruleService.performRuleChecking(schedule, engineer, timeTable, unavailable)) {
+				schedule.getEngineers().add(engineer);
 			}
 			
-			if(index == 9) {
-				Collections.reverse(engineers);
-				index = 0;
+			if(schedule.getEngineers().size() == shiftConfig.getPerday()) {					
+				break;
 			}
-			
-			for (int i = index; i < engineers.size(); i++) {
-				index = i;
-				
-				if(ruleService.performRuleChecking(schedule, engineers.get(i), timeTable)) {
-					schedule.getEngineers().add(engineers.get(i));
-				}								
-				
-				if(schedule.getEngineers().size() == shiftConfig.getPerday()) {					
-					break;
-				}
-			}
+		}
+		
+		// remove unavailable engineers
+		engineers.removeAll(unavailable);
+		
+		if(schedule.getEngineers().size() < 2) {
+			assignEngineers(engineers, timeTable, schedule);
 		}		
-
-		return timeTable;
 	}
 }

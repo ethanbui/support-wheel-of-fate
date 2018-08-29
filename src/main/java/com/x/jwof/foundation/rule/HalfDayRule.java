@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 public class HalfDayRule implements RuleEngine {
 
 	@Override
-	public boolean run(TimeTable schedule, Engineer engineer, List<TimeTable> timeTable) {
+	public boolean run(TimeTable schedule, Engineer engineer, List<TimeTable> timeTable, List<Engineer> unavailable) {
 		log.info("Half day rule checker for engineer {} on day {}", engineer.getId(), schedule.getId());
 						
 		return !schedule.getEngineers().contains(engineer);

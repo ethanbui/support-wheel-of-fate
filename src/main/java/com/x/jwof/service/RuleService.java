@@ -17,12 +17,14 @@ public class RuleService {
 	@Autowired
 	private List<RuleEngine> ruleEngines;
 	
-	public boolean performRuleChecking(TimeTable schedule, Engineer engineer, List<TimeTable> timeTable) {
+	public boolean performRuleChecking(TimeTable schedule, Engineer engineer, List<TimeTable> timeTable, List<Engineer> unavailable) {
 		log.info("perform rule checking...");
 		
 		boolean isValid = true;
 		for (RuleEngine ruleEngine : ruleEngines) {
-			isValid = ruleEngine.run(schedule, engineer, timeTable);
+			isValid = ruleEngine.run(schedule, engineer, timeTable, unavailable);
+			log.info("Result: {}", isValid);
+			
 			if(!isValid) {
 				return isValid;
 			}
