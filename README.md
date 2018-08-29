@@ -24,7 +24,7 @@ upcoming week.
 2. An engineer cannot have half day shifts on consecutive days.
 3. Each engineer should have completed one whole day of support in any 2 week period.
 
-***Important note:
+* Important note:
 
 These rules are liable to change in the future, so make sure your design is flexible enough to be able
 to add new rules.
